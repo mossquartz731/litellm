@@ -1306,16 +1306,21 @@ if MCP_AVAILABLE:
             )
 
             executed: Final = await call_mcp_tool(
-                user_api_key_auth=user_api_key_dict,
-                mcp_auth_header=mcp_auth_header,
-                mcp_servers=[canonical_server_id],
-                mcp_server_auth_headers=mcp_server_auth_headers,
-                oauth2_headers=user_oauth_extra_headers or caller_oauth2_headers,
-                raw_headers=raw_headers_from_request,
-                client_ip=IPAddressUtils.get_mcp_client_ip(request),
-                guardrail_context=MCPRequestContext.resolve_guardrail_context(authenticated_data),
-                incoming_bearer_token=MCPRequestHandler.get_guardrail_bearer_token(request.headers, user_api_key_dict),
-                **authenticated_data,
+                **{
+                    **authenticated_data,
+                    "user_api_key_auth": user_api_key_dict,
+                    "mcp_auth_header": mcp_auth_header,
+                    "mcp_servers": [canonical_server_id],
+                    "mcp_server_auth_headers": mcp_server_auth_headers,
+                    "oauth2_headers": user_oauth_extra_headers or caller_oauth2_headers,
+                    "raw_headers": raw_headers_from_request,
+                    "client_ip": IPAddressUtils.get_mcp_client_ip(request),
+                    "wire_compat": WireCompat.LEGACY,
+                    "guardrail_context": MCPRequestContext.resolve_guardrail_context(authenticated_data),
+                    "incoming_bearer_token": MCPRequestHandler.get_guardrail_bearer_token(
+                        request.headers, user_api_key_dict
+                    ),
+                }
             )
             return complete_call_tool_result(executed, WireCompat.LEGACY)
         except MCPMissingUserEnvVarsError as e:
